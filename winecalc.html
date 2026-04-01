@@ -1,0 +1,262 @@
+<html>
+	<head>
+		<title>Travis' Wine Calculator</title>
+
+		<!-- Style Sheet -->
+		<style type="text/css">
+			body {
+				background-color: DarkGray;
+			}
+
+			div.calc_section {
+				background-color: White;
+				border: 3px solid DarkCyan;
+				width: 500px;
+				margin: 5px;
+				padding: 2px;
+			}
+
+			div.calc_section hr {
+				border: 1px dashed DarkCyan;
+			}
+			
+			div.calc_section h3 {
+				text-align: left;
+				margin-left: 5px;
+				margin-right: 5px;
+				margin-top: 1px;
+				margin-bottom: 1px;
+			}
+
+			div.calc_section h3 a {
+				text-decoration: none;
+				color: Black;
+			}
+
+			div.calc_section h3 a:hover {
+				text-decoration: underline;
+			}
+
+			div.calc_section form {
+				margin: 0px;
+				display: none;
+			}
+			
+			div.calc_section div.calc_field_label {
+				width: 180px;
+				text-align: right;
+				float: left;
+			}
+
+			div.calc_section input.calc_field_result {
+				background-color: PaleGoldenRod;
+				width: 75px;
+			}
+
+			div.calc_section input.calc_field_input {
+				width: 75px;
+			}
+
+			div.calc_section input.calc_button {
+				vertical-align: bottom;
+			}
+		</style>
+
+		<!-- UI Functions -->		
+		<script language="javascript">
+			function toggleForm(sectionID) {
+				var section = document.getElementById(sectionID);
+				var form = section.getElementsByTagName('form')[0];
+
+				if (form.style.display != "block") {
+					form.style.display = "block";
+				}
+				else {
+					form.style.display = "none";
+				}
+			}
+		</script>
+
+		<!-- Utility Functions -->		
+		<script language="javascript">
+			function roundNum(num, places) {
+				num = convertNum(num);
+				places = convertNum(places);
+				return Math.round(num*(Math.pow(10, places)))/Math.pow(10,places);
+			}
+
+			function convertNum(num) {
+				return num-0;
+			}
+		</script>
+		
+		<!-- Wine Functions -->
+		<script language="javascript">
+			function adjustBrixReading(reading, calTemp, curTemp) {
+				return reading+((curTemp-calTemp)*0.03);
+			}
+
+			function increaseBrix(reading, target, mustVol) {
+				return (target-reading)*0.125*convertMustVolToWineVol(mustVol);
+			}
+
+			function decreaseBrix(reading, target, mustVol) {
+				return ((reading/target)*convertMustVolToWineVol(mustVol))-convertMustVolToWineVol(mustVol);
+			}
+
+			function convertMustVolToWineVol(mustVol) {
+				return mustVol*0.8;
+			}
+
+			function convertSugarWgtToCups(wgt, wgtPerCup) {
+				return wgt*wgtPerCup;
+			}
+
+			function potentialAlcohol(reading) {
+				return reading*0.59;
+			}
+
+			function increaseAcid(reading, target, mustVol) {
+				return (target-reading)*convertMustVolToWineVol(mustVol)*3.785*10;
+			}
+
+			function convertAcidWgtToTeaspoons(wgt, wgtPerTeaspoon) {
+				return wgt*wgtPerTeaspoon;
+			}
+
+			function decreaseAcid(reading, target, mustVol) {
+				return ((reading/target)*convertMustVolToWineVol(mustVol))-convertMustVolToWineVol(mustVol);
+			}
+		</script>
+
+		<!-- Form Functions -->		
+		<script language="javascript">
+			function increaseBrixForm(form) {
+				wgt = increaseBrix(convertNum(form.reading.value), convertNum(form.target.value), convertNum(form.mustVol.value));
+
+				form.sugarWeight.value = wgt;
+				form.sugarWeight.value = roundNum(form.sugarWeight.value, 2);
+				form.sugarCups.value = convertSugarWgtToCups(wgt, convertNum(form.sugarDensity.value));
+				form.sugarCups.value = roundNum(form.sugarCups.value, 2);
+			}
+
+			function decreaseBrixForm(form) {
+				form.waterVol.value = decreaseBrix(convertNum(form.reading.value), convertNum(form.target.value), convertNum(form.mustVol.value));
+				form.waterVol.value = roundNum(form.waterVol.value, 2);
+			}
+
+			function adjustBrixReadingForm(form) {
+				form.actualBrix.value = adjustBrixReading(convertNum(form.reading.value), convertNum(form.calTemp.value), convertNum(form.curTemp.value));
+				form.actualBrix.value = roundNum(form.actualBrix.value, 2);
+			}
+
+			function potentialAlcoholForm(form) {
+				form.alcohol.value = potentialAlcohol(convertNum(form.reading.value));
+				form.alcohol.value = roundNum(form.alcohol.value, 2);
+			}
+
+			function increaseAcidForm(form) {
+				wgt = increaseAcid(convertNum(form.reading.value), convertNum(form.target.value), convertNum(form.mustVol.value));
+
+				form.acidWeight.value = wgt;
+				form.acidWeight.value = roundNum(form.acidWeight.value, 2);
+				form.acidTeaspoons.value = convertAcidWgtToTeaspoons(wgt, convertNum(form.acidDensity.value));
+				form.acidTeaspoons.value = roundNum(form.acidTeaspoons.value, 2);
+			}
+
+			function decreaseAcidForm(form) {
+				form.waterVol.value = decreaseAcid(convertNum(form.reading.value), convertNum(form.target.value), convertNum(form.mustVol.value));
+				form.waterVol.value = roundNum(form.waterVol.value, 2);
+			}
+		</script>
+	</head>
+
+	<body>
+		<div class="calc_section" id="inc_brix_form">
+			<h3><a href="javascript:toggleForm('inc_brix_form');">Increase Brix</a></h3>
+			<form>
+				<hr />
+				<div class="calc_field_label">Must Volume:</div><input type="text" class="calc_field_input" name="mustVol" value="5" /> gal.<br />
+				<div class="calc_field_label">Reading:</div><input type="text" type="text" class="calc_field_input" name="reading" /> &deg;Brix<br />
+				<div class="calc_field_label">Target:</div><input type="text" class="calc_field_input" name="target" /> &deg;Brix<br />
+				<div class="calc_field_label">Sugar Density:</div><input type="text" class="calc_field_input" name="sugarDensity" value="2.5" /> cups/lb.<br />
+				<br />
+				<div class="calc_field_label">Sugar:</div><input type="text" name="sugarWeight" class="calc_field_result" readonly="true" /> lbs.<br />
+				<div class="calc_field_label">&nbsp;</div><input type="text" name="sugarCups" class="calc_field_result" readonly="true" /> cups<br />
+				<br />
+				<div class="calc_field_label">&nbsp;</div><input type="button" value="Calculate" onclick="increaseBrixForm(this.form);" /><br />
+			</form>
+		</div>
+
+		<div class="calc_section" id="dec_brix_form">
+			<h3><a href="javascript:toggleForm('dec_brix_form');">Decrease Brix</a></h3>
+			<form>
+				<hr />
+				<div class="calc_field_label">Must Volume:</div><input type="text" class="calc_field_input" name="mustVol" value="5" /> gal.<br />
+				<div class="calc_field_label">Reading:</div><input type="text" class="calc_field_input" name="reading" /> &deg;Brix<br />
+				<div class="calc_field_label">Target:</div><input type="text" class="calc_field_input" name="target" /> &deg;Brix<br />
+				<br />
+				<div class="calc_field_label">Water:</div><input type="text" name="waterVol" class="calc_field_result" readonly="true" /> gal.<br />
+				<br />
+				<div class="calc_field_label">&nbsp;</div><input type="button" value="Calculate" onclick="decreaseBrixForm(this.form);" /><br />
+			</form>
+		</div>
+
+		<div class="calc_section" id="adj_brix_reading_form">
+			<h3><a href="javascript:toggleForm('adj_brix_reading_form');">Adjust Brix Reading for Temperature</a></h3>
+			<form>
+				<hr />
+				<div class="calc_field_label">Calibration Temp:</div><input type="text" class="calc_field_input" name="calTemp" value="68" /> &deg;F<br />
+				<div class="calc_field_label">Must Temp:</div><input type="text" class="calc_field_input" name="curTemp" /> &deg;F<br />
+				<div class="calc_field_label">Reading:</div><input type="text" class="calc_field_input" name="reading" /> &deg;Brix<br />
+				<br />
+				<div class="calc_field_label">Actual:</div><input type="text" name="actualBrix" class="calc_field_result" readonly="true" /> &deg;Brix<br />
+				<br />
+				<div class="calc_field_label">&nbsp;</div><input type="button" value="Calculate" onclick="adjustBrixReadingForm(this.form);" /><br />
+			</form>
+		</div>
+
+		<div class="calc_section" id="potential_alcohol_form">
+			<h3><a href="javascript:toggleForm('potential_alcohol_form');">Potential Alcohol From Brix</a></h3>
+			<form>
+				<hr />
+				<div class="calc_field_label">Reading:</div><input type="text" class="calc_field_input" name="reading" /> &deg;Brix<br />
+				<br />
+				<div class="calc_field_label">Alcohol:</div><input type="text" class="calc_field_result" name="alcohol" class="calc_field_result" readonly="true" /> % (by vol.)<br />
+				<br />
+				<div class="calc_field_label">&nbsp;</div><input type="button" value="Calculate" onclick="potentialAlcoholForm(this.form);" /><br />
+			</form>
+		</div>
+
+		<div class="calc_section" id="inc_acid_form">
+			<h3><a href="javascript:toggleForm('inc_acid_form');">Increase Acid</a></h3>
+			<form>
+				<hr />
+				<div class="calc_field_label">Must Volume:</div><input type="text" class="calc_field_input" name="mustVol" value="5" /> gal.<br />
+				<div class="calc_field_label">Acid Reading:</div><input type="text" class="calc_field_input" name="reading" /> g/100ml.<br />
+				<div class="calc_field_label">Acid Target:</div><input type="text" class="calc_field_input" name="target" />  g/100ml.<br />
+				<div class="calc_field_label">Acid Density:</div><input type="text" class="calc_field_input" name="acidDensity" value="0.21" /> g/tsp.<br />
+				<br />
+				<div class="calc_field_label">Acid:</div><input type="text" name="acidWeight" class="calc_field_result" readonly="true" /> g.<br />
+				<div class="calc_field_label">&nbsp;</div><input type="text" name="acidTeaspoons" class="calc_field_result" readonly="true" /> tsp.<br />
+				<br />
+				<div class="calc_field_label">&nbsp;</div><input type="button" value="Calculate" onclick="increaseAcidForm(this.form);" /><br />
+			</form>
+		</div>
+
+		<div class="calc_section" id="dec_acid_form">
+			<h3><a href="javascript:toggleForm('dec_acid_form');">Decrease Acid</a></h3>
+			<form>
+				<hr />
+				<div class="calc_field_label">Must Volume:</div><input type="text" class="calc_field_input" name="mustVol" value="5" /> gal.<br />
+				<div class="calc_field_label">Acid Reading:</div><input type="text" class="calc_field_input" name="reading" /> g/100ml.<br />
+				<div class="calc_field_label">Acid Target:</div><input type="text" class="calc_field_input" name="target" /> g/100ml.<br />
+				<br />
+				<div class="calc_field_label">Water:</div><input type="text" name="waterVol" class="calc_field_result" readonly="true" /> gal.<br />
+				<br />
+				<div class="calc_field_label">&nbsp;</div><input type="button" value="Calculate" onclick="decreaseAcidForm(this.form);" /><br />
+			</form>
+		</div>
+
+	</body>
+</html>
